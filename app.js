@@ -3,8 +3,17 @@
   const D=globalThis.PUBG_DATA, E=globalThis.PUBG_ENGINE;
   const $=id=>document.getElementById(id), fmt=n=>Number(n).toLocaleString('ko-KR');
   const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const defaults={distance:100,hp:100,helmet:2,vest:2,weaponId:'m416',maxStk:6,compareStk:5,countMode:'within',model:'auto',zones:D.zones.map(z=>z.id),modeIds:{},rpmOverrides:{},classFilter:'all',compareClass:'all',search:'',mapMode:'damage',selectedZone:'chest'};
+  const defaults={distance:100,hp:100,helmet:2,vest:2,weaponId:'m416',maxStk:6,compareStk:5,countMode:'within',model:'auto',zones:D.zones.map(z=>z.id),modeIds:{},rpmOverrides:{},classFilter:'all',compareClass:'all',compareSort:'count',compareSortDirection:'desc',search:'',mapMode:'damage',selectedZone:'chest'};
   let state=structuredClone(defaults), summaryWorker=null, detailWorker=null, taskId=0, detailId=0, timer=null, counts=[], comparison=[], ctx=null, detail=null, lastPage=null, toastTimer;
+  const rowColorStorageKey='pubg-stk-lab-row-colors-v1';
+  const rowColorNames={red:'빨강',blue:'파랑',green:'초록'};
+  let rowColors={},rowColorTarget=null,rowColorAnchor=null;
+  try {
+    const saved=JSON.parse(localStorage.getItem(rowColorStorageKey)||'{}');
+    if(saved&&typeof saved==='object'&&!Array.isArray(saved)) {
+      for(const w of D.weapons) if(Object.hasOwn(rowColorNames,saved[w.id])) rowColors[w.id]=saved[w.id];
+    }
+  } catch(_) {}
   try {
     const saved=JSON.parse(localStorage.getItem('pubg-stk-lab-v1')||'null');
     if(saved) state={...state,...saved};
@@ -17,12 +26,16 @@
   if(hash.has('rpm')) state.rpmOverrides[state.weaponId]=Number(hash.get('rpm'));
   if(hash.has('fire')) state.modeIds[state.weaponId]=hash.get('fire');
   if(hash.has('model')) state.model=hash.get('model');
+  if(hash.has('sort')) state.compareSort=hash.get('sort');
+  if(hash.has('dir')) state.compareSortDirection=hash.get('dir');
   function clamp(v,a,b,fallback=a){return Number.isFinite(Number(v))?Math.max(a,Math.min(b,Math.round(Number(v)))):fallback;}
   state.distance=clamp(state.distance,0,500,100);state.hp=clamp(state.hp,1,100,100);
   state.helmet=clamp(state.helmet,0,3,2);state.vest=clamp(state.vest,0,3,2);
   state.maxStk=clamp(state.maxStk,1,15,6);state.compareStk=clamp(state.compareStk,1,state.maxStk,5);
   state.zones=Array.isArray(state.zones)?state.zones.filter(id=>D.zones.some(z=>z.id===id)):defaults.zones;
   state.countMode=state.countMode==='exact'?'exact':'within';state.model=state.model==='sampled'?'sampled':'auto';
+  if(!['count','ratio','ttk'].includes(state.compareSort))state.compareSort='count';
+  state.compareSortDirection=state.compareSortDirection==='asc'?'asc':'desc';
   if(!D.weapons.some(w=>w.id===state.weaponId))state.weaponId='m416';
   state.modeIds=state.modeIds||{};state.rpmOverrides=state.rpmOverrides||{};
   for(const k of Object.keys(state.rpmOverrides)){const n=Number(state.rpmOverrides[k]);if(!Number.isFinite(n)||n<1||n>3000)delete state.rpmOverrides[k];}
@@ -36,6 +49,36 @@
   function bounds(n,w=weapon(),context=ctx){return state.countMode==='exact'?[n,n]:E.globalBounds(context,n);}
   function badge(w=weapon()){return state.model==='sampled'||w.model==='sampled'?'보간 · 추정':'곡선 대조';}
   function toast(message){$('toast').textContent=message;$('toast').classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').classList.remove('show'),2500);}
+  function saveRowColors(){try{localStorage.setItem(rowColorStorageKey,JSON.stringify(rowColors));}catch(_) {}}
+  function applyRowColors(){
+    $('comparison-rows').querySelectorAll('tr[data-weapon-id]').forEach(row=>{
+      const color=rowColors[row.dataset.weaponId];
+      if(color)row.dataset.rowColor=color;else delete row.dataset.rowColor;
+    });
+  }
+  function closeRowColorMenu(restoreFocus=false){
+    $('row-color-menu').hidden=true;
+    $('comparison-rows').querySelectorAll('.color-menu-target').forEach(row=>row.classList.remove('color-menu-target'));
+    if(restoreFocus&&rowColorAnchor?.isConnected)rowColorAnchor.focus({preventScroll:true});
+    rowColorTarget=null;rowColorAnchor=null;
+  }
+  function openRowColorMenu(row,event){
+    closeRowColorMenu();
+    const w=D.weapons.find(w=>w.id===row.dataset.weaponId);if(!w)return;
+    rowColorTarget=w.id;rowColorAnchor=row;row.classList.add('color-menu-target');
+    $('row-color-target').textContent=`${w.name} · 행 배경색`;
+    const menu=$('row-color-menu');
+    menu.querySelectorAll('[data-row-color-choice]').forEach(button=>{
+      const selected=rowColors[w.id]===button.dataset.rowColorChoice;
+      button.setAttribute('aria-checked',String(selected));button.classList.toggle('active',selected);
+    });
+    menu.hidden=false;
+    const rect=row.getBoundingClientRect(),box=menu.getBoundingClientRect();
+    const x=event.clientX||rect.left+Math.min(140,rect.width/2),y=event.clientY||rect.top+Math.min(20,rect.height/2);
+    menu.style.left=`${Math.max(8,Math.min(x,window.innerWidth-box.width-8))}px`;
+    menu.style.top=`${Math.max(8,Math.min(y,window.innerHeight-box.height-8))}px`;
+    menu.querySelector('[data-row-color-choice]').focus({preventScroll:true});
+  }
   function syncInputs(){
     $('distance').value=$('distance-number').value=state.distance;$('hp').value=$('hp-number').value=state.hp;
     $('distance').style.setProperty('--progress',state.distance/5+'%');$('hp').style.setProperty('--progress',(state.hp-1)/99*100+'%');
@@ -112,11 +155,37 @@
     if(!pending){$('calculation-status').classList.remove('busy');$('calculation-status').textContent=!ctx?'해당 거리의 자료가 없습니다.':!state.zones.length?'집계할 명중 부위를 하나 이상 선택하세요.':`${state.zones.length}개 부위 · ${state.maxStk}발 구성 전체 ${fmt(E.choose(state.maxStk+state.zones.length-1,state.maxStk))}개`;} 
   }
   function renderComparison(pending=false){
-    const list=comparison.map(x=>({...x,w:D.weapons.find(w=>w.id===x.id)})).filter(x=>state.compareClass==='all'||x.w.class===state.compareClass).sort((a,b)=>(b.count??-1)-(a.count??-1)||time(state.compareStk,a.w)-time(state.compareStk,b.w)||a.w.name.localeCompare(b.w.name));
+    closeRowColorMenu();
     const total=state.zones.length?E.choose(state.compareStk+state.zones.length-1,state.compareStk):0;
+    const sortNames={count:'성공 조합 수',ratio:'전체 조합 대비',ttk:'기절 TTK 최대값'};
+    document.querySelectorAll('[data-compare-sort]').forEach(button=>{
+      const active=button.dataset.compareSort===state.compareSort;
+      button.closest('th').setAttribute('aria-sort',active?(state.compareSortDirection==='desc'?'descending':'ascending'):'none');
+      button.classList.toggle('active',active);
+      button.querySelector('.sort-arrow').textContent=active?(state.compareSortDirection==='desc'?'↓':'↑'):'↕';
+      const next=active&&state.compareSortDirection==='desc'?'오름차순':'내림차순';
+      button.setAttribute('aria-label',`${sortNames[button.dataset.compareSort]} ${next} 정렬`);
+    });
+    $('comparison-sort-status').textContent=`정렬: ${sortNames[state.compareSort]} · ${state.compareSortDirection==='desc'?'내림차순':'오름차순'}`;
+    const list=comparison.map(x=>{
+      const w=D.weapons.find(w=>w.id===x.id),wc=E.context(w,state,D),b=bounds(state.compareStk,w,wc);
+      return {...x,w,wc,b,ratio:total&&x.count!==null?x.count/total*100:0,ttkMax:x.count>0?time(b[1],w):null};
+    }).filter(x=>state.compareClass==='all'||x.w.class===state.compareClass);
+    function sortValue(x){
+      if(x.count===null)return null;
+      return state.compareSort==='ttk'?x.ttkMax:state.compareSort==='ratio'?x.ratio:x.count;
+    }
+    list.sort((a,b)=>{
+      const av=sortValue(a),bv=sortValue(b);
+      if(av===null||bv===null){if(av!==bv)return av===null?1:-1;}
+      else if(Math.abs(av-bv)>1e-10)return state.compareSortDirection==='desc'?bv-av:av-bv;
+      const byCount=(b.count??-1)-(a.count??-1);if(byCount)return byCount;
+      if(a.ttkMax!==null&&b.ttkMax!==null&&Math.abs(a.ttkMax-b.ttkMax)>1e-10)return a.ttkMax-b.ttkMax;
+      return a.w.name.localeCompare(b.w.name);
+    });
     $('comparison-rows').innerHTML=list.length?list.map((x,i)=>{
-      const wc=E.context(x.w,state,D),b=bounds(state.compareStk,x.w,wc),ratio=total&&x.count!==null?x.count/total*100:0;
-      return `<tr class="${x.id===state.weaponId?'selected':''}"><td>${String(i+1).padStart(2,'0')}</td><td><button class="gun-select" data-weapon="${x.id}">${escape(x.w.name)}</button><span class="gun-class">${x.w.class}</span></td><td>${x.count===null?'<span class="count-zero">거리 자료 없음</span>':x.count>0?`<button class="count-button" data-comparison-details="${x.id}" aria-label="${escape(x.w.name)} ${state.compareStk}발 ${fmt(x.count)}개 조합 상세 보기">${fmt(x.count)}<small>개</small><span>›</span></button>`:'<span class="count-zero">0개</span>'}</td><td class="ratio-cell"><div class="ratio-wrap"><div class="ratio-track"><div class="ratio-fill" style="width:${ratio}%"></div></div><span class="ratio-number">${x.count===null?'—':ratio.toFixed(2)+'%'}</span></div></td><td>${x.count>0?timeRange(b[0],b[1],x.w):'—'}</td><td>${fmt(Math.round(rpm(x.w)))}</td><td><span class="method-tag ${badge(x.w).includes('추정')?'sampled':''}">${badge(x.w)}</span></td></tr>`;
+      const {b,ratio}=x;
+      return `<tr class="${x.id===state.weaponId?'selected':''}" data-weapon-id="${x.id}"${rowColors[x.id]?` data-row-color="${rowColors[x.id]}"`:''} tabindex="0" aria-label="${escape(x.w.name)} 비교 행"><td>${String(i+1).padStart(2,'0')}</td><td><button class="gun-select" data-weapon="${x.id}">${escape(x.w.name)}</button><span class="gun-class">${x.w.class}</span></td><td>${x.count===null?'<span class="count-zero">거리 자료 없음</span>':x.count>0?`<button class="count-button" data-comparison-details="${x.id}" aria-label="${escape(x.w.name)} ${state.compareStk}발 ${fmt(x.count)}개 조합 상세 보기">${fmt(x.count)}<small>개</small><span>›</span></button>`:'<span class="count-zero">0개</span>'}</td><td class="ratio-cell"><div class="ratio-wrap"><div class="ratio-track"><div class="ratio-fill" style="width:${ratio}%"></div></div><span class="ratio-number">${x.count===null?'—':ratio.toFixed(2)+'%'}</span></div></td><td>${x.count>0?timeRange(b[0],b[1],x.w):'—'}</td><td>${fmt(Math.round(rpm(x.w)))}</td><td><span class="method-tag ${badge(x.w).includes('추정')?'sampled':''}">${badge(x.w)}</span></td></tr>`;
     }).join(''):`<tr><td colspan="7" class="empty-state">${pending?'총기별 조합을 계산하고 있습니다…':'비교할 무기가 없습니다.'}</td></tr>`;
   }
   function killWorkers(){if(summaryWorker){summaryWorker.terminate();summaryWorker=null;}}
@@ -207,6 +276,44 @@
   $('max-stk').addEventListener('change',e=>{state.maxStk=Number(e.target.value);state.compareStk=Math.min(state.compareStk,state.maxStk);update();});
   $('compare-stk').addEventListener('change',e=>{state.compareStk=Number(e.target.value);update();});
   $('compare-class').addEventListener('change',e=>{state.compareClass=e.target.value;renderComparison();persist();});
+  document.querySelectorAll('[data-compare-sort]').forEach(button=>button.addEventListener('click',()=>{
+    const key=button.dataset.compareSort;
+    if(state.compareSort===key)state.compareSortDirection=state.compareSortDirection==='desc'?'asc':'desc';
+    else{state.compareSort=key;state.compareSortDirection='desc';}
+    renderComparison(comparison.length===0);persist();
+  }));
+  $('comparison-rows').addEventListener('contextmenu',event=>{
+    const row=event.target.closest('tr[data-weapon-id]');if(!row)return;
+    event.preventDefault();event.stopPropagation();openRowColorMenu(row,event);
+  });
+  $('comparison-rows').addEventListener('keydown',event=>{
+    if(event.key!=='ContextMenu'&&!(event.shiftKey&&event.key==='F10'))return;
+    const row=event.target.closest('tr[data-weapon-id]');if(!row)return;
+    event.preventDefault();openRowColorMenu(row,{clientX:0,clientY:0});
+  });
+  $('row-color-menu').addEventListener('click',event=>{
+    const button=event.target.closest('button');if(!button||!rowColorTarget)return;
+    event.stopPropagation();
+    if(button.id==='row-color-clear-all')rowColors={};
+    else if(Object.hasOwn(rowColorNames,button.dataset.rowColorChoice)){
+      const color=button.dataset.rowColorChoice;
+      if(rowColors[rowColorTarget]===color)delete rowColors[rowColorTarget];else rowColors[rowColorTarget]=color;
+    }else return;
+    saveRowColors();applyRowColors();closeRowColorMenu(true);
+  });
+  $('row-color-menu').addEventListener('contextmenu',event=>event.preventDefault());
+  $('row-color-menu').addEventListener('keydown',event=>{
+    if(event.key==='Escape'){event.preventDefault();closeRowColorMenu(true);return;}
+    if(event.key==='Tab'){closeRowColorMenu();return;}
+    if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
+    event.preventDefault();const buttons=[...$('row-color-menu').querySelectorAll('button')],i=buttons.indexOf(document.activeElement);
+    const next=event.key==='Home'?0:event.key==='End'?buttons.length-1:(i+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
+    buttons[next].focus({preventScroll:true});
+  });
+  document.addEventListener('pointerdown',event=>{if(!$('row-color-menu').hidden&&!$('row-color-menu').contains(event.target))closeRowColorMenu();});
+  document.addEventListener('contextmenu',event=>{if(!event.target.closest('#row-color-menu'))closeRowColorMenu();});
+  document.addEventListener('scroll',()=>{if(!$('row-color-menu').hidden)closeRowColorMenu();},true);
+  window.addEventListener('resize',()=>closeRowColorMenu());
   $('fire-mode').addEventListener('change',e=>{state.modeIds[state.weaponId]=e.target.value;delete state.rpmOverrides[state.weaponId];update(false);});
   $('rpm-input').addEventListener('change',e=>{state.rpmOverrides[state.weaponId]=clamp(e.target.value,1,3000,Math.round(mode().rpm));update(false);});
   $('rpm-input').addEventListener('input',e=>{const n=Number(e.target.value);if(e.target.value===''||!Number.isFinite(n)||n<1||n>3000)return;state.rpmOverrides[state.weaponId]=Math.round(n);update(false);});
@@ -225,7 +332,7 @@
   $('source-button').addEventListener('click',showSources);$('footer-source').addEventListener('click',showSources);
   $('reset-button').addEventListener('click',()=>{state=structuredClone(defaults);location.hash='';$('weapon-search').value='';renderWeapons();update();toast('기본 조건으로 돌아왔습니다.');});
   $('share-button').addEventListener('click',async()=>{
-    const p=new URLSearchParams({w:state.weaponId,d:state.distance,hp:state.hp,h:state.helmet,v:state.vest,n:state.maxStk,c:state.compareStk,mode:state.countMode,model:state.model,z:state.zones.join(',')});
+    const p=new URLSearchParams({w:state.weaponId,d:state.distance,hp:state.hp,h:state.helmet,v:state.vest,n:state.maxStk,c:state.compareStk,mode:state.countMode,model:state.model,z:state.zones.join(','),sort:state.compareSort,dir:state.compareSortDirection});
     if(state.rpmOverrides[state.weaponId])p.set('rpm',state.rpmOverrides[state.weaponId]);if(state.modeIds[state.weaponId])p.set('fire',state.modeIds[state.weaponId]);
     const url=location.href.split('#')[0]+'#'+p.toString();history.replaceState(null,'','#'+p.toString());
     try{await navigator.clipboard.writeText(url);toast('현재 조건의 링크를 복사했습니다.');}catch(_){toast('주소창에 현재 조건을 반영했습니다. 주소를 복사해 주세요.');}

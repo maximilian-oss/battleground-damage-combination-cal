@@ -1,0 +1,208 @@
+@font-face {
+  font-family: "Pretendard";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("./fonts/PretendardVariable.woff2") format("woff2");
+}
+
+:root {
+  font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-size: 16px;
+  --text: #f3f6fb;
+  --muted: #b4bfce;
+  --border: #36404f;
+}
+body {font-weight: 450; line-height: 1.65; letter-spacing: -.1px;}
+button, input, select {font-family: inherit;}
+.mono, .input-unit input, .weapon-metrics strong, .count-button,
+.stk-table td:last-child, .compare-table td:first-child,
+.compare-table td:nth-child(5), .compare-table td:nth-child(6),
+.ratio-number, .detail-summary .detail-total, .detail-table td:first-child,
+.detail-table td:last-child, .rpm-manual input {
+  font-family: "Pretendard", "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+.brand strong {font-size: 20px; font-weight: 750;}
+.brand-sub {font-size: 14px; color: #bac5d4;}
+.eyebrow {font-size: 11px; color: #b4c0d0; letter-spacing: 1.4px;}
+h1 {font-size: 32px; font-weight: 750;}
+h2 {font-size: 20px; font-weight: 700;}
+.subtitle {font-size: 15px; color: #bac5d4;}
+.data-version {font-size: 12px; color: #b4c0d0;}
+.ghost {font-size: 14px; color: #d2dbe8; font-weight: 500;}
+.icon-button {width: 35px; height: 35px; font-size: 19px; color: #bdcadb;}
+.condition-title>label {font-size: 14px; color: #dae2ed; font-weight: 550;}
+.input-unit {font-size: 14px;}
+.input-unit input {font-size: 32px; font-weight: 650;}
+.presets {flex-wrap: wrap; gap: 3px;}
+.presets button {font-size: 12px; color: #bac5d5; padding: 3px 6px;}
+.hp-presets {font-size: 12px; color: #acbacd;}
+.hp-presets button {font-size: 12px; padding: 4px 8px; color: #c7d2e1;}
+.armor-row>span {font-size: 14px; color: #d3ddec; font-weight: 550;}
+.segments button {font-size: 13px; min-height: 30px; color: #b8c6d9;}
+.armor-note {font-size: 12px; color: #a8b7ca;}
+.panel-header {padding-top: 21px;}
+.panel-header .mono {font-size: 14px;}
+.weapon-search {padding: 8px 10px;}
+.weapon-search input {font-size: 14px; color: #e6ecf4;}
+.weapon-search input::placeholder {color: #a4b2c6;}
+.class-tabs button {font-size: 13px; color: #b0bed0; min-height: 33px;}
+.weapon-list {height: 720px;}
+.weapon-item {min-height: 59px;}
+.weapon-item strong {font-size: 15px; font-weight: 600; color: #e3eaf4; overflow: hidden; text-overflow: ellipsis;}
+.weapon-item small {font-size: 12px; color: #a7b7cb;}
+.weapon-item .weapon-class {font-size: 10px; color: #b0c1d7;}
+.weapon-heading .eyebrow {font-size: 12px; color: #bbc9dc;}
+.weapon-heading h2 {font-size: 32px; font-weight: 750;}
+.method-badge {font-size: 12px; color: #e0bf86; font-weight: 550;}
+.method-badge.sampled {color: #b2d0e9;}
+.weapon-metrics span {font-size: 12px; color: #b5c4d8;}
+.weapon-metrics strong {font-size: 22px; font-weight: 650; color: #f4f7fc;}
+.map-toolbar h3 {font-size: 14px; color: #c9d5e5; font-weight: 550;}
+.mini-segments button {font-size: 12px; padding: 4px 10px; color: #b4c3d7;}
+.damage-map svg {height: 430px;}
+.damage-map .map-label text {font-size: 18px; fill: #cbd7e7; font-weight: 550;}
+.damage-map .map-label .zone-number {font-family: inherit; font-size: 26px; font-weight: 650; fill: #f8faff; font-variant-numeric: tabular-nums;}
+.damage-map .map-label .zone-unit {font-size: 14px; fill: #aebfd5; font-weight: 500;}
+.damage-map .map-label.focused text {fill: #ffd58c;}
+.map-legend {font-size: 11px; color: #adbed4;}
+.hit-detail {flex-wrap: wrap; min-height: 52px; padding: 11px;}
+.hit-detail>span:first-child {font-size: 14px; font-weight: 550; color: #e4ecf7;}
+.hit-detail strong {font-size: 15px; font-weight: 650;}
+.hit-detail>span:last-child {font-size: 12px; color: #b5c4d8;}
+.coverage-note {font-size: 12px; color: #b1c0d4; line-height: 1.75; min-height: 42px;}
+.zone-controls summary {font-size: 13px; color: #c7d4e6;}
+.zone-controls summary>span {font-size: 12px;}
+.zone-presets button {font-size: 12px; color: #c1cfe1; padding: 5px 8px;}
+.zone-checks {gap: 10px 5px;}
+.zone-checks label {font-size: 12px; color: #c5d2e4;}
+.zone-checks input {width: 15px; height: 15px;}
+.small-label {font-size: 12px; color: #aebfd5;}
+.stk-config label {font-size: 14px; color: #c9d6e8;}
+.stk-config select {width: 118px; font-size: 15px;}
+.count-mode button {font-size: 14px; font-weight: 550; padding: 9px 4px; color: #b8c7dc;}
+.mode-help {font-size: 12px; color: #b5c5db; min-height: 42px; line-height: 1.75;}
+.rpm-controls {gap: 8px;}
+.rpm-controls>label:first-child {font-size: 13px; color: #c4d2e4;}
+.rpm-controls select {font-size: 13px; padding: 8px 22px 8px 8px; min-width: 110px;}
+.rpm-manual {font-size: 12px; color: #bdcce0;}
+.rpm-manual input {font-size: 15px; font-weight: 600; width: 64px;}
+.rpm-note {font-size: 11px; color: #adbed6; line-height: 1.7;}
+.stk-table-wrap {max-height: 450px;}
+.stk-table th {font-size: 13px; font-weight: 600; color: #c0cee1; padding: 10px 6px;}
+.stk-table td {height: 55px; padding: 0 6px; font-size: 15px;}
+.stk-table td:first-child {font-size: 15px; color: #ced9e8; font-weight: 550;}
+.stk-table td:last-child {font-size: 15px; color: #e1e9f5; font-weight: 600;}
+.count-button {font-size: 21px; font-weight: 650; color: #ffd38a;}
+.count-button>small {font-size: 13px; color: #d5b67f;}
+.count-button>span {font-size: 15px; color: #c5ad84;}
+.count-zero {color: #a1b1c7; font-size: 14px;}
+.calculation-status {font-size: 12px; color: #b1c1d7; padding-top: 10px; min-height: 34px;}
+.ttk-explanation p {font-size: 12px; color: #bacbe0;}
+.assumption-note {font-size: 11px; color: #a9bbd3; line-height: 1.8;}
+.comparison-heading {flex-wrap: wrap; margin-bottom: 15px;}
+.comparison-heading .eyebrow {font-size: 11px; color: #cfb27e;}
+.comparison-heading h2 {font-size: 21px; font-weight: 700;}
+.compare-controls label {font-size: 14px; color: #c5d3e6;}
+.compare-controls select {font-size: 14px; padding: 8px 26px 8px 10px;}
+.comparison-sort-status {margin: 2px 0 6px; color: #f0cd91; font-size: 13px; font-weight: 550;}
+.table-color-hint {font-size: 12px; color: #b2c1d6; margin: 0 0 15px;}
+.table-color-hint span {color: #e0bf87;}
+.compare-table {min-width: 1050px; font-variant-numeric: tabular-nums;}
+.compare-table th {font-size: 14px; font-weight: 600; color: #d3deed; padding: 12px 13px; vertical-align: middle;}
+.compare-table td {font-size: 16px; font-weight: 500; padding: 13px; border-bottom-color: #344052;}
+.compare-table td:nth-child(1) {width: 50px; font-size: 14px; font-weight: 550; color: #aebeD4;}
+.compare-table td:nth-child(2) {min-width: 154px;}
+.compare-table .gun-select {font-size: 16px; font-weight: 650; color: #edf2f9;}
+.compare-table .gun-class {font-size: 11px; font-weight: 500; color: #b1c3db;}
+.compare-table .count-button {font-size: 18px; font-weight: 650;}
+.compare-table .count-button>small {font-size: 12px;}
+.compare-table td:nth-child(5),.compare-table td:nth-child(6) {font-size: 16px; font-weight: 600; color: #e4ecf7;}
+.ratio-cell {min-width: 174px;}
+.ratio-track {width: 65px; height: 5px; background: #344157;}
+.ratio-fill {background: #d3b276;}
+.ratio-number {font-size: 16px; font-weight: 600; min-width: 65px; color: #e1eaf7;}
+.compare-table .method-tag {font-size: 12px; font-weight: 550; color: #d8bb88;}
+.compare-table .method-tag.sampled {color: #a9cae6;}
+.comparison-footnote {font-size: 12px; color: #b3c4da; line-height: 1.8;}
+.table-sort-button {display: inline-flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; min-height: 36px; font-size: 15px; color: #d4dfee; font-weight: 650; text-align: left; line-height: 1.45;}
+.table-sort-button .sort-arrow {font-size: 17px; color: #98adc8; flex-shrink: 0;}
+.table-sort-button:hover,.table-sort-button.active {color: #ffda9e;}
+.table-sort-button.active .sort-arrow {color: #ffd38a;}
+.table-sort-button small {display: block; margin-top: 3px; color: #b8c9df; font-size: 12px; font-weight: 500;}
+.table-sort-button.active small {color: #e2c799;}
+footer {font-size: 12px; color: #a8bad2;}
+.text-button {font-size: 12px; color: #c0cfe3;}
+.dialog-heading h2 {font-size: 24px;}
+.dialog-heading .eyebrow {font-size: 11px;}
+.detail-pill {font-size: 13px; color: #d1deef;}
+.detail-summary .detail-total {font-size: 23px; font-weight: 650;}
+.detail-caption {font-size: 13px; color: #b7c8de;}
+.detail-table th {font-size: 13px; color: #c9d7ea; font-weight: 600;}
+.detail-table td {font-size: 15px; padding: 13px 8px;}
+.detail-table td:first-child {font-size: 13px; color: #a4bad5;}
+.detail-table td:last-child {font-size: 14px; color: #e0eafa; font-weight: 550;}
+.combo-piece {font-size: 13px; color: #d7e1ef; padding: 4px 7px;}
+.combo-piece b {font-weight: 650;}
+.pagination .mono {font-size: 13px; color: #bdcfe7;}
+.pagination .ghost {font-size: 13px;}
+.page-jump {font-size: 12px; color: #b9cce5;}
+.page-jump input {font-size: 13px; width: 65px;}
+.source-content {font-size: 14px; color: #c3d2e6;}
+.source-content h3 {font-size: 16px; font-weight: 650;}
+.source-content .model-select,.source-content select {font-size: 13px;}
+.source-content .source-note {font-size: 12px; color: #b6c9e3;}
+.empty-state {font-size: 14px; color: #b3c6df;}
+.row-color-menu {width: 238px;}
+.row-color-target {font-size: 13px; color: #bfd0e8;}
+.row-color-menu button {font-size: 15px; min-height: 40px; font-weight: 550;}
+.row-color-help {font-size: 11px; color: #b5c8e1;}
+
+@media (max-width: 1120px) {
+  .analysis-grid {grid-template-columns: 200px minmax(315px,1fr) minmax(315px,1fr);}
+  .brand-sub {font-size: 13px;}
+  .weapon-item strong {font-size: 14px;}
+  .segments {min-width: 154px;}
+}
+@media (max-width: 950px) {
+  .analysis-grid {grid-template-columns: 200px 1fr;}
+  .weapon-list {height: 1100px; max-height: 1100px;}
+  .brand-sub {display: none;}
+}
+@media (max-width: 620px) {
+  .topbar {padding: 0 13px;}
+  .brand strong {font-size: 17px;}
+  .top-actions .ghost {font-size: 12px; padding: 6px 8px;}
+  h1 {font-size: 27px;}
+  .eyebrow {font-size: 9px; letter-spacing: .8px;}
+  .subtitle {font-size: 13px;}
+  .reset-button {font-size: 12px;}
+  .condition-title>label {font-size: 13px;}
+  .input-unit input {font-size: 28px;}
+  .input-unit {font-size: 12px;}
+  .condition {padding: 15px 12px;}
+  .presets button {font-size: 11px; padding: 3px 4px;}
+  .hp-presets button {font-size: 11px; padding: 4px 6px;}
+  .armor-condition {gap: 9px;}
+  .armor-row>span {font-size: 12px;}
+  .segments {min-width: 0;}
+  .segments button {font-size: 12px; min-width: 23px;}
+  .weapon-list {height: auto; max-height: 240px; grid-template-columns: repeat(2,minmax(0,1fr));}
+  .weapon-item {min-height: 55px;}
+  .weapon-item strong {font-size: 14px;}
+  .weapon-item small {font-size: 11px;}
+  .weapon-item .weapon-class {font-size: 10px;}
+  .arsenal .panel-header h2 {font-size: 18px;}
+  .damage-map svg {height: 420px;}
+  .rpm-controls select {font-size: 13px;}
+  .rpm-note {font-size: 11px;}
+  .comparison-heading h2 {font-size: 19px;}
+  .compare-controls label,.compare-controls select {font-size: 13px;}
+  .compare-table {min-width: 1030px;}
+  .compare-table th,.compare-table td {padding-left: 11px; padding-right: 11px;}
+  .detail-table td:nth-child(2) {min-width: 280px;}
+  .detail-table th {font-size: 12px;}
+  footer {font-size: 11px;}
+}
